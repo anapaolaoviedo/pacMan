@@ -75,7 +75,7 @@ end
 "starting a eholr model of an agent "
 function initialize_model()
     #a 5x5 grid with walls (prediodic false) and manhattan metric (up,down, left,right)
-    space = GridSpace((14,17); periodic = false, metric = :manhattan) 
+    space = GridSpace((17,14); periodic = false, metric = :manhattan) 
     model = StandardABM(Ghost, space; agent_step!) #calls the struct agent ghost, space we just created and movement 
     return model
 end

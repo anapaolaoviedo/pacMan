@@ -40,7 +40,7 @@ const App = () => {
         {
           matrix.map((row, rowidx) =>
             row.map((value, colidx) =>
-              <rect key={`${rowidx}-${colidx}`} x={250 + 25 * rowidx} y={5 + 25 * colidx} width={25} height={25} fill={value == 1 ? "lightgray" : "gray"}/>
+              <rect key={`${rowidx}-${colidx}`} x={250 + 25 * colidx} y={5 + 25 * rowidx} width={25} height={25} fill={value == 1 ? "lightgray" : "gray"}/>
             ))
         }
         <image x={255 + 25 * posX} y={9 + 25 * posY} width="24" height="24" href="ghost.png"/>
