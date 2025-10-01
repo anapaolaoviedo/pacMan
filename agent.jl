@@ -29,46 +29,75 @@ matrix = [
 ]
 
 #the behaviour function for the agent 
+# A* pathfinding implementation
+function find_path(start, goal, matrix)
+    if matrix[goal[2], goal[1]] != 1
+        return nothing
+    end
+    
+    open_set = [start]
+    came_from = Dict()
+    g_score = Dict(start => 0)
+    f_score = Dict(start => abs(start[1] - goal[1]) + abs(start[2] - goal[2]))
+    
+    while !isempty(open_set)
+        current = open_set[1]
+        current_f = f_score[current]
+        for node in open_set
+            if f_score[node] < current_f
+                current = node
+                current_f = f_score[node]
+            end
+        end
+        
+        if current == goal
+            path = [current]
+            while haskey(came_from, current)
+                current = came_from[current]
+                push!(path, current)
+            end
+            return reverse(path)
+        end
+        
+        filter!(x -> x != current, open_set)
+        
+        neighbors = [
+            (current[1], current[2] - 1),
+            (current[1], current[2] + 1),
+            (current[1] - 1, current[2]),
+            (current[1] + 1, current[2])
+        ]
+        
+        for neighbor in neighbors
+            if neighbor[1] < 1 || neighbor[1] > size(matrix)[2] ||
+               neighbor[2] < 1 || neighbor[2] > size(matrix)[1] ||
+               matrix[neighbor[2], neighbor[1]] != 1
+                continue
+            end
+            
+            tentative_g = g_score[current] + 1
+            
+            if !haskey(g_score, neighbor) || tentative_g < g_score[neighbor]
+                came_from[neighbor] = current
+                g_score[neighbor] = tentative_g
+                f_score[neighbor] = tentative_g + abs(neighbor[1] - goal[1]) + abs(neighbor[2] - goal[2])
+                
+                if !(neighbor in open_set)
+                    push!(open_set, neighbor)
+                end
+            end
+        end
+    end
+    
+    return nothing
+end
+
 function agent_step!(agent, model)
-    pos = agent.pos  # pos is (x, y) where x=column, y=row
-    possible_moves = []
+    target = (9, 7)
+    path = find_path(agent.pos, target, matrix)
     
-    # Up (decrease row)
-    new_pos = (pos[1], pos[2] - 1)
-    if new_pos[2] >= 1 && new_pos[2] <= size(matrix)[1] && new_pos[1] >= 1 && new_pos[1] <= size(matrix)[2]
-        if matrix[new_pos[2], new_pos[1]] == 1  # Note: matrix[row, col]
-            push!(possible_moves, new_pos)
-        end
-    end
-    
-    # Down (increase row)
-    new_pos = (pos[1], pos[2] + 1)
-    if new_pos[2] >= 1 && new_pos[2] <= size(matrix)[1] && new_pos[1] >= 1 && new_pos[1] <= size(matrix)[2]
-        if matrix[new_pos[2], new_pos[1]] == 1
-            push!(possible_moves, new_pos)
-        end
-    end
-    
-    # Left (decrease column)
-    new_pos = (pos[1] - 1, pos[2])
-    if new_pos[2] >= 1 && new_pos[2] <= size(matrix)[1] && new_pos[1] >= 1 && new_pos[1] <= size(matrix)[2]
-        if matrix[new_pos[2], new_pos[1]] == 1
-            push!(possible_moves, new_pos)
-        end
-    end
-    
-    # Right (increase column)
-    new_pos = (pos[1] + 1, pos[2])
-    if new_pos[2] >= 1 && new_pos[2] <= size(matrix)[1] && new_pos[1] >= 1 && new_pos[1] <= size(matrix)[2]
-        if matrix[new_pos[2], new_pos[1]] == 1
-            push!(possible_moves, new_pos)
-        end
-    end
-    
-    # Move to a random valid position
-    if !isempty(possible_moves)
-        new_pos = rand(possible_moves)
-        move_agent!(agent, new_pos, model)
+    if path !== nothing && length(path) > 1
+        move_agent!(agent, path[2], model)
     end
 end
 
